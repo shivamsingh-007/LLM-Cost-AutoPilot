@@ -1,0 +1,51 @@
+version: 1
+description: "Prompt complexity routing map \u2014 auto-generated from classifier\
+  \ training"
+tiers:
+- tier: 1
+  name: simple
+  range:
+  - 0.0
+  - 0.35
+  use_cases:
+  - extraction
+  - qa
+  - translation
+  - formatting
+  recommended_models:
+  - claude-haiku-4.5
+  - gpt-4o-mini
+  - llama3.1-8b
+  fallback_model: gpt-4o-mini
+- tier: 2
+  name: moderate
+  range:
+  - 0.36
+  - 0.65
+  use_cases:
+  - summarization
+  - classification
+  - explanation
+  - analysis
+  - rewriting
+  recommended_models:
+  - gpt-4o
+  - claude-3.5-sonnet
+  - llama3.3-70b
+  fallback_model: gpt-4o
+- tier: 3
+  name: complex
+  range:
+  - 0.66
+  - 1.0
+  use_cases:
+  - coding
+  - reasoning
+  - creative
+  - planning
+  - math
+  recommended_models:
+  - claude-opus-4.6
+  - claude-sonnet-4.6
+  - o1-mini
+  fallback_model: claude-sonnet-4.6

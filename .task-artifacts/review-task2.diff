@@ -1,0 +1,417 @@
+# Review package for Task 2
+
+## Files
+
+1. unified_interface.py (created)
+2. test_unified_interface.py (created)
+
+## unified_interface.py
+
+from __future__ import annotations
+
+import time
+import os
+import warnings
+from dataclasses import dataclass, asdict, field
+from typing import Dict, Optional
+
+from models_config import ModelConfig, Provider
+
+
+@dataclass
+class Response:
+    output: str
+    tokens: Dict[str, int] = field(default_factory=lambda: {"input": 0, "output": 0})
+    latency_ms: float = 0.0
+    cost_usd: float = 0.0
+    model_id: str = ""
+    provider: str = ""
+    success: bool = True
+    error_message: str = ""
+
+    def to_dict(self) -> Dict:
+        return asdict(self)
+
+
+class UnifiedLLMInterface:
+    def __init__(self) -> None:
+        self.openai_client = None
+        self.anthropic_client = None
+        self.ollama_client = None
+
+        try:
+            from openai import AsyncOpenAI as _AsyncOpenAI
+            self.openai_client = _AsyncOpenAI(
+                api_key=os.getenv("OPENAI_API_KEY", "")
+            )
+        except ImportError:
+            warnings.warn("openai SDK not installed. OpenAI models unavailable.")
+
+        try:
+            from anthropic import AsyncAnthropic as _AsyncAnthropic
+            self.anthropic_client = _AsyncAnthropic(
+                api_key=os.getenv("ANTHROPIC_API_KEY", "")
+            )
+        except ImportError:
+            warnings.warn("anthropic SDK not installed. Anthropic models unavailable.")
+
+        try:
+            import ollama as _ollama
+            self.ollama_client = _ollama.AsyncClient(
+                host=os.getenv("OLLAMA_HOST", "http://localhost:11434")
+            )
+        except ImportError:
+            warnings.warn("ollama SDK not installed. Ollama models unavailable.")
+
+    async def send_request(
+        self,
+        prompt: str,
+        model_config: ModelConfig,
+        system_prompt: str = "",
+        temperature: float = 0.7,
+        max_tokens: int = 1000,
+    ) -> Response:
+        start = time.time()
+        try:
+            if model_config.provider == Provider.OPENAI:
+                output, tokens = await self._call_openai(prompt, model_config, system_prompt, temperature, max_tokens)
+            elif model_config.provider == Provider.ANTHROPIC:
+                output, tokens = await self._call_anthropic(prompt, model_config, system_prompt, temperature, max_tokens)
+            elif model_config.provider == Provider.OLLAMA:
+                output, tokens = await self._call_ollama(prompt, model_config, system_prompt, temperature, max_tokens)
+            else:
+                raise ValueError(f"Unknown provider: {model_config.provider}")
+
+            elapsed_ms = (time.time() - start) * 1000
+            cost = model_config.estimate_cost(tokens["input"], tokens["output"])
+            return Response(
+                output=output,
+                tokens=tokens,
+                latency_ms=elapsed_ms,
+                cost_usd=cost,
+                model_id=model_config.model_id,
+                provider=model_config.provider.value,
+            )
+        except Exception as e:
+            elapsed_ms = (time.time() - start) * 1000
+            return Response(
+                output="",
+                latency_ms=elapsed_ms,
+                model_id=model_config.model_id,
+                provider=model_config.provider.value,
+                success=False,
+                error_message=str(e),
+            )
+
+    async def _call_openai(
+        self,
+        prompt: str,
+        model_config: ModelConfig,
+        system_prompt: str,
+        temperature: float,
+        max_tokens: int,
+    ) -> tuple[str, Dict[str, int]]:
+        if self.openai_client is None:
+            raise RuntimeError("OpenAI client not available. Install openai SDK.")
+
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+
+        response = await self.openai_client.chat.completions.create(
+            model=model_config.model_id,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+
+        choice = response.choices[0]
+        output = choice.message.content or ""
+        usage = response.usage
+        tokens: Dict[str, int] = {}
+        if usage:
+            tokens["input"] = usage.prompt_tokens
+            tokens["output"] = usage.completion_tokens
+        return output, tokens
+
+    async def _call_anthropic(
+        self,
+        prompt: str,
+        model_config: ModelConfig,
+        system_prompt: str,
+        temperature: float,
+        max_tokens: int,
+    ) -> tuple[str, Dict[str, int]]:
+        if self.anthropic_client is None:
+            raise RuntimeError("Anthropic client not available. Install anthropic SDK.")
+
+        kwargs: Dict = {
+            "model": model_config.model_id,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+        if system_prompt:
+            kwargs["system"] = system_prompt
+
+        response = await self.anthropic_client.messages.create(**kwargs)
+
+        tokens: Dict[str, int] = {}
+        if hasattr(response, "usage") and response.usage:
+            tokens["input"] = getattr(response.usage, "input_tokens", 0)
+            tokens["output"] = getattr(response.usage, "output_tokens", 0)
+
+        content_blocks = response.content
+        output = ""
+        if content_blocks:
+            for block in content_blocks:
+                if hasattr(block, "text"):
+                    output += block.text
+        return output, tokens
+
+    async def _call_ollama(
+        self,
+        prompt: str,
+        model_config: ModelConfig,
+        system_prompt: str,
+        temperature: float,
+        max_tokens: int,
+    ) -> tuple[str, Dict[str, int]]:
+        if self.ollama_client is None:
+            raise RuntimeError("Ollama client not available. Install ollama SDK.")
+
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+
+        response = await self.ollama_client.chat(
+            model=model_config.model_id,
+            messages=messages,
+            options={
+                "temperature": temperature,
+                "num_predict": max_tokens,
+            },
+        )
+
+        output = response.get("message", {}).get("content", "")
+        input_tokens_est = max(1, int(len(prompt.split()) * 1.3))
+        output_tokens_est = max(1, int(len(output.split()) * 1.3))
+
+        tokens: Dict[str, int] = {
+            "input": input_tokens_est,
+            "output": output_tokens_est,
+        }
+        return output, tokens
+
+
+## test_unified_interface.py
+
+from __future__ import annotations
+
+from unittest.mock import AsyncMock, patch, MagicMock, ANY
+import pytest
+
+from models_config import ModelConfig, Provider, GPT4O, GPT4O_MINI, CLAUDE_HAIKU_4_5
+from unified_interface import Response, UnifiedLLMInterface
+
+
+class TestResponseDataclass:
+    def test_default_success(self):
+        r = Response(output="hello")
+        assert r.success is True
+        assert r.error_message == ""
+        assert r.tokens == {"input": 0, "output": 0}
+
+    def test_to_dict(self):
+        r = Response(
+            output="test",
+            tokens={"input": 10, "output": 20},
+            latency_ms=100.0,
+            cost_usd=0.005,
+            model_id="gpt-4o",
+            provider="openai",
+            success=True,
+        )
+        d = r.to_dict()
+        assert d["output"] == "test"
+        assert d["tokens"] == {"input": 10, "output": 20}
+        assert d["latency_ms"] == 100.0
+        assert d["cost_usd"] == 0.005
+        assert d["model_id"] == "gpt-4o"
+        assert d["provider"] == "openai"
+        assert d["success"] is True
+        assert d["error_message"] == ""
+
+    def test_to_dict_error(self):
+        r = Response(output="", success=False, error_message="something broke")
+        d = r.to_dict()
+        assert d["success"] is False
+        assert d["error_message"] == "something broke"
+
+
+class TestUnifiedLLMInterfaceInit:
+    @patch("builtins.__import__", side_effect=ImportError("no openai"))
+    def test_openai_unavailable(self, mock_import):
+        with pytest.warns(UserWarning, match="openai SDK not installed"):
+            llm = UnifiedLLMInterface()
+        assert llm.openai_client is None
+
+    @patch("builtins.__import__", side_effect=ImportError("no anthropic"))
+    def test_anthropic_unavailable(self, mock_import):
+        with pytest.warns(UserWarning, match="anthropic SDK not installed"):
+            llm = UnifiedLLMInterface()
+        assert llm.anthropic_client is None
+
+    @patch("builtins.__import__", side_effect=ImportError("no ollama"))
+    def test_ollama_unavailable(self, mock_import):
+        with pytest.warns(UserWarning, match="ollama SDK not installed"):
+            llm = UnifiedLLMInterface()
+        assert llm.ollama_client is None
+
+    @patch("builtins.__import__")
+    def test_all_clients_created(self, mock_import):
+        mock_openai = MagicMock()
+        mock_anthropic = MagicMock()
+        mock_ollama = MagicMock()
+
+        def side_effect(name, *args, **kwargs):
+            if name == "openai":
+                mock_openai.AsyncOpenAI = MagicMock(return_value="openai_client")
+                return mock_openai
+            elif name == "anthropic":
+                mock_anthropic.AsyncAnthropic = MagicMock(return_value="anthropic_client")
+                return mock_anthropic
+            elif name == "ollama":
+                mock_ollama.AsyncClient = MagicMock(return_value="ollama_client")
+                return mock_ollama
+            raise ImportError(f"no {name}")
+
+        mock_import.side_effect = side_effect
+
+        with patch.dict("os.environ", {"OPENAI_API_KEY": "sk-test", "ANTHROPIC_API_KEY": "sk-ant-test"}):
+            llm = UnifiedLLMInterface()
+            assert llm.openai_client == "openai_client"
+            assert llm.anthropic_client == "anthropic_client"
+            assert llm.ollama_client == "ollama_client"
+
+
+@pytest.mark.asyncio
+class TestRouting:
+    @patch.object(UnifiedLLMInterface, "_call_openai", new_callable=AsyncMock)
+    async def test_routes_to_openai(self, mock_call_openai):
+        mock_call_openai.return_value = ("openai output", {"input": 10, "output": 20})
+        llm = UnifiedLLMInterface()
+        r = await llm.send_request("hello", GPT4O)
+        mock_call_openai.assert_awaited_once()
+        assert r.success is True
+        assert r.output == "openai output"
+        assert r.provider == "openai"
+
+    @patch.object(UnifiedLLMInterface, "_call_anthropic", new_callable=AsyncMock)
+    async def test_routes_to_anthropic(self, mock_call_anthropic):
+        mock_call_anthropic.return_value = ("anthropic output", {"input": 15, "output": 25})
+        llm = UnifiedLLMInterface()
+        r = await llm.send_request("hello", CLAUDE_HAIKU_4_5)
+        mock_call_anthropic.assert_awaited_once()
+        assert r.success is True
+        assert r.output == "anthropic output"
+        assert r.provider == "anthropic"
+
+    @patch.object(UnifiedLLMInterface, "_call_ollama", new_callable=AsyncMock)
+    async def test_routes_to_ollama(self, mock_call_ollama):
+        mock_call_ollama.return_value = ("ollama output", {"input": 5, "output": 10})
+        llm = UnifiedLLMInterface()
+        model = ModelConfig(
+            provider=Provider.OLLAMA,
+            model_id="llama3.1-8b",
+            display_name="Test",
+            cost_per_input_token=0.0,
+            cost_per_output_token=0.0,
+            avg_latency_ms=500,
+            context_window=128_000,
+            max_output_tokens=8_192,
+            quality_tier=5,
+        )
+        r = await llm.send_request("hello", model)
+        mock_call_ollama.assert_awaited_once()
+        assert r.success is True
+        assert r.output == "ollama output"
+        assert r.provider == "ollama"
+
+
+@pytest.mark.asyncio
+class TestErrorHandling:
+    @patch.object(UnifiedLLMInterface, "_call_openai", new_callable=AsyncMock)
+    async def test_error_returns_success_false(self, mock_call_openai):
+        mock_call_openai.side_effect = RuntimeError("API failure")
+        llm = UnifiedLLMInterface()
+        r = await llm.send_request("hello", GPT4O)
+        assert r.success is False
+        assert "API failure" in r.error_message
+        assert r.output == ""
+
+    @patch.object(UnifiedLLMInterface, "_call_openai", new_callable=AsyncMock)
+    async def test_error_still_provides_model_info(self, mock_call_openai):
+        mock_call_openai.side_effect = RuntimeError("fail")
+        llm = UnifiedLLMInterface()
+        r = await llm.send_request("hello", GPT4O)
+        assert r.model_id == "gpt-4o"
+        assert r.provider == "openai"
+
+    @patch.object(UnifiedLLMInterface, "_call_openai", new_callable=AsyncMock)
+    async def test_unknown_provider(self, mock_call_openai):
+        mock_call_openai.side_effect = ValueError("Unknown provider")
+        llm = UnifiedLLMInterface()
+        r = await llm.send_request("hello", GPT4O)
+        assert r.success is False
+
+
+@pytest.mark.asyncio
+class TestCostCalculation:
+    @patch.object(UnifiedLLMInterface, "_call_openai", new_callable=AsyncMock)
+    async def test_cost_matches_estimate_cost(self, mock_call_openai):
+        mock_call_openai.return_value = ("content", {"input": 100, "output": 50})
+        llm = UnifiedLLMInterface()
+        r = await llm.send_request("hello", GPT4O_MINI)
+        expected = GPT4O_MINI.estimate_cost(100, 50)
+        assert r.cost_usd == pytest.approx(expected)
+
+    @patch.object(UnifiedLLMInterface, "_call_ollama", new_callable=AsyncMock)
+    async def test_zero_cost_for_ollama(self, mock_call_ollama):
+        mock_call_ollama.return_value = ("content", {"input": 100, "output": 50})
+        llm = UnifiedLLMInterface()
+        model = ModelConfig(
+            provider=Provider.OLLAMA,
+            model_id="test",
+            display_name="Test",
+            cost_per_input_token=0.0,
+            cost_per_output_token=0.0,
+            avg_latency_ms=500,
+            context_window=128_000,
+            max_output_tokens=8_192,
+            quality_tier=5,
+        )
+        r = await llm.send_request("hello", model)
+        assert r.cost_usd == 0.0
+
+
+@pytest.mark.asyncio
+class TestSendRequestParameters:
+    @patch.object(UnifiedLLMInterface, "_call_openai", new_callable=AsyncMock)
+    async def test_passes_system_prompt(self, mock_call_openai):
+        mock_call_openai.return_value = ("content", {"input": 10, "output": 20})
+        llm = UnifiedLLMInterface()
+        await llm.send_request("hello", GPT4O, system_prompt="be helpful")
+        mock_call_openai.assert_awaited_once()
+        args, _ = mock_call_openai.call_args
+        assert args[2] == "be helpful"
+
+    @patch.object(UnifiedLLMInterface, "_call_openai", new_callable=AsyncMock)
+    async def test_passes_temperature_and_max_tokens(self, mock_call_openai):
+        mock_call_openai.return_value = ("content", {"input": 10, "output": 20})
+        llm = UnifiedLLMInterface()
+        await llm.send_request("hello", GPT4O, temperature=0.3, max_tokens=500)
+        mock_call_openai.assert_awaited_once_with("hello", GPT4O, "", 0.3, 500)
+

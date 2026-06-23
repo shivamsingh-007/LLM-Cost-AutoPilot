@@ -1,7 +1,10 @@
 __pycache__/
 *.pyc
 .env
+.env.local
+.env.production
 models/complexity_classifier/*.joblib
 data/*.duckdb
 routing_failures.csv
 config/routing_runtime.json
+data/report.txt

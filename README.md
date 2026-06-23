@@ -1,69 +1,8 @@
 <div align="center">
 
-<!-- ─── ANIMATED LOGO ─── -->
-<svg width="280" height="280" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0f0c29"/><stop offset="50%" stop-color="#302b63"/><stop offset="100%" stop-color="#24243e"/>
-    </linearGradient>
-    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00d2ff"/><stop offset="100%" stop-color="#3a7bd5"/>
-    </linearGradient>
-    <linearGradient id="pinkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f093fb"/><stop offset="100%" stop-color="#f5576c"/>
-    </linearGradient>
-    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#43e97b"/><stop offset="100%" stop-color="#38f9d7"/>
-    </linearGradient>
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f6d365"/><stop offset="100%" stop-color="#fda085"/>
-    </linearGradient>
-    <filter id="glow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <filter id="softGlow"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-  </defs>
-  <!-- Background -->
-  <rect width="280" height="280" rx="48" fill="url(#bgGrad)"/>
-  <!-- Orbiting ring -->
-  <ellipse cx="140" cy="140" rx="110" ry="110" fill="none" stroke="rgba(0,210,255,0.12)" stroke-width="1">
-    <animateTransform attributeName="transform" type="rotate" from="0 140 140" to="360 140 140" dur="20s" repeatCount="indefinite"/>
-  </ellipse>
-  <ellipse cx="140" cy="140" rx="90" ry="90" fill="none" stroke="rgba(240,147,251,0.08)" stroke-width="0.8">
-    <animateTransform attributeName="transform" type="rotate" from="360 140 140" to="0 140 140" dur="15s" repeatCount="indefinite"/>
-  </ellipse>
-  <!-- Outer nodes on ring -->
-  <circle r="4" fill="url(#cyanGrad)" opacity="0.7">
-    <animateMotion dur="20s" repeatCount="indefinite" path="M140,30 A110,110 0 1,1 139.9,30"/>
-  </circle>
-  <circle r="3" fill="url(#pinkGrad)" opacity="0.5">
-    <animateMotion dur="15s" repeatCount="indefinite" path="M140,50 A90,90 0 1,0 139.9,50"/>
-  </circle>
-  <!-- Dollar sign -->
-  <text x="140" y="155" font-family="'Segoe UI',Arial,sans-serif" font-size="90" font-weight="900" fill="url(#cyanGrad)" text-anchor="middle" filter="url(#glow)">$</text>
-  <!-- Circuit paths -->
-  <path d="M50 200 L70 200 L70 180 L90 180" stroke="url(#pinkGrad)" stroke-width="2" fill="none" opacity="0.5">
-    <animate attributeName="stroke-dashoffset" from="100" to="0" dur="3s" repeatCount="indefinite"/>
-    <animate attributeName="stroke-dasharray" values="100;0" dur="3s" repeatCount="indefinite"/>
-  </path>
-  <path d="M230 200 L210 200 L210 180 L190 180" stroke="url(#greenGrad)" stroke-width="2" fill="none" opacity="0.5">
-    <animate attributeName="stroke-dashoffset" from="100" to="0" dur="3s" repeatCount="indefinite" begin="1s"/>
-    <animate attributeName="stroke-dasharray" values="100;0" dur="3s" repeatCount="indefinite" begin="1s"/>
-  </path>
-  <!-- Nodes on circuits -->
-  <circle cx="90" cy="180" r="5" fill="url(#pinkGrad)" opacity="0.8">
-    <animate attributeName="r" values="5;7;5" dur="2s" repeatCount="indefinite"/>
-  </circle>
-  <circle cx="190" cy="180" r="5" fill="url(#greenGrad)" opacity="0.8">
-    <animate attributeName="r" values="5;7;5" dur="2s" repeatCount="indefinite" begin="1s"/>
-  </circle>
-  <!-- AI processor at top -->
-  <rect x="105" y="30" width="70" height="50" rx="10" fill="none" stroke="url(#cyanGrad)" stroke-width="1.5" opacity="0.3"/>
-  <line x1="120" y1="30" x2="120" y2="24" stroke="url(#cyanGrad)" stroke-width="1.5" opacity="0.3"/>
-  <line x1="140" y1="30" x2="140" y2="24" stroke="url(#cyanGrad)" stroke-width="1.5" opacity="0.3"/>
-  <line x1="160" y1="30" x2="160" y2="24" stroke="url(#cyanGrad)" stroke-width="1.5" opacity="0.3"/>
-  <text x="140" y="62" font-family="monospace" font-size="18" fill="url(#cyanGrad)" text-anchor="middle" opacity="0.5" font-weight="bold">AI</text>
-  <!-- Small label -->
-  <text x="140" y="225" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="rgba(255,255,255,0.25)" text-anchor="middle" letter-spacing="3">COST AUTOPILOT</text>
-</svg>
+![LLM Cost Autopilot](docs/images/banner.png)
+
+**LLM Cost Autopilot** — ML-driven routing that cuts LLM API spend by **92%** while preserving **85%** of GPT-4o quality. For teams running LLMs in production who want to stop overpaying for every prompt.
 
 # LLM Cost Autopilot
 
@@ -135,6 +74,10 @@
 
 The system routes simple queries (Q&A, extraction, translation) to cheap models like Haiku/Mini/Llama 8B at near-zero cost, moderate tasks (summarization, analysis) to mid-tier models, and only escalates complex prompts (coding, math, planning) to premium models like Opus.
 
+**Benchmark setup:** 740 total prompts — 234 human-labeled (14 task types, 3 complexity tiers) + 506 synthetic (randomized with seed `42` for reproducibility). Each prompt routed via classifier → cheapest capable model → DuckDB log. Quality scored per-response on a 0–1 rubric by an LLM judge, with inter-rater agreement via LLM-as-judge consensus. Scores aggregated as unweighted mean. Escalation triggered when judge-model agreement falls below 0.7 threshold.
+
+**Dataset:** [`data/complexity_labels.csv`](data/complexity_labels.csv) contains all 234 labeled prompts with task type, complexity score, and tier. Synthetic prompts in [`run_benchmark.py`](run_benchmark.py) (line 15+). Reproduce with `python run_benchmark.py`.
+
 <div align="center">
 
 <!-- Cost comparison bar chart SVG -->
@@ -171,6 +114,12 @@ The system routes simple queries (Q&A, extraction, translation) to cheap models 
 
 </div>
 
+<br>
+
+![Benchmark Terminal Output](docs/images/terminal.png)
+
+![Cost Comparison Charts](docs/images/cost_chart.png)
+
 ---
 
 ## 💡 The Problem
@@ -194,6 +143,7 @@ Running LLMs at scale is expensive. GPT-4o costs **$2.50/M input tokens** while 
 |---|---|---|
 | <svg width="56" height="56" viewBox="0 0 56 56"><rect width="56" height="56" rx="14" fill="#1a1a2e"/><rect x="4" y="4" width="48" height="48" rx="12" fill="none" stroke="url(#cyanGrad)" stroke-width="1"/><text x="28" y="36" font-family="monospace" font-size="26" fill="#00d2ff" font-weight="bold" text-anchor="middle">9</text></svg><br/>**9 Models**<br/>GPT-4o, o1-mini, Claude<br/>Sonnet, Haiku, Opus, Llama | <svg width="56" height="56" viewBox="0 0 56 56"><rect width="56" height="56" rx="14" fill="#1a1a2e"/><rect x="4" y="4" width="48" height="48" rx="12" fill="none" stroke="url(#pinkGrad)" stroke-width="1"/><text x="28" y="36" font-family="monospace" font-size="22" fill="#f093fb" font-weight="bold" text-anchor="middle">ML</text></svg><br/>**ML Classifier**<br/>RandomForest + TF-IDF<br/>75%+ cross-val accuracy | <svg width="56" height="56" viewBox="0 0 56 56"><rect width="56" height="56" rx="14" fill="#1a1a2e"/><rect x="4" y="4" width="48" height="48" rx="12" fill="none" stroke="url(#greenGrad)" stroke-width="1"/><text x="28" y="36" font-family="monospace" font-size="24" fill="#43e97b" font-weight="bold" text-anchor="middle">₹</text></svg><br/>**Cost Optimizer**<br/>Route to cheapest model<br/>that meets quality needs |
 | <svg width="56" height="56" viewBox="0 0 56 56"><rect width="56" height="56" rx="14" fill="#1a1a2e"/><rect x="4" y="4" width="48" height="48" rx="12" fill="none" stroke="url(#goldGrad)" stroke-width="1"/><text x="28" y="36" font-family="monospace" font-size="24" fill="#f6d365" font-weight="bold" text-anchor="middle">⚡</text></svg><br/>**Async by Default**<br/>True async concurrency<br/>across all providers | <svg width="56" height="56" viewBox="0 0 56 56"><rect width="56" height="56" rx="14" fill="#1a1a2e"/><rect x="4" y="4" width="48" height="48" rx="12" fill="none" stroke="#fff" stroke-width="1" stroke-opacity="0.15"/><text x="28" y="36" font-family="monospace" font-size="20" fill="rgba(255,255,255,0.7)" font-weight="bold" text-anchor="middle">DB</text></svg><br/>**DuckDB Logger**<br/>Request-level logs<br/>with cost & quality | <svg width="56" height="56" viewBox="0 0 56 56"><rect width="56" height="56" rx="14" fill="#1a1a2e"/><rect x="4" y="4" width="48" height="48" rx="12" fill="none" stroke="url(#cyanGrad)" stroke-width="1"/><text x="28" y="36" font-family="monospace" font-size="18" fill="#00d2ff" font-weight="bold" text-anchor="middle">API</text></svg><br/>**FastAPI + Docker**<br/>Production-ready API<br/>with Grafana dashboards |
+| <svg width="56" height="56" viewBox="0 0 56 56"><rect width="56" height="56" rx="14" fill="#1a1a2e"/><rect x="4" y="4" width="48" height="48" rx="12" fill="none" stroke="#f5576c" stroke-width="1"/><text x="28" y="36" font-family="monospace" font-size="18" fill="#f5576c" font-weight="bold" text-anchor="middle">↺</text></svg><br/>**Fallback Chain**<br/>Reroute on failure<br/>confidence thresholds | <svg width="56" height="56" viewBox="0 0 56 56"><rect width="56" height="56" rx="14" fill="#1a1a2e"/><rect x="4" y="4" width="48" height="48" rx="12" fill="none" stroke="#43e97b" stroke-width="1"/><text x="28" y="36" font-family="monospace" font-size="18" fill="#43e97b" font-weight="bold" text-anchor="middle">↻</text></svg><br/>**Closed-Loop Learning**<br/>DuckDB logs → verifier<br/>→ retrain classifier |
 
 </div>
 
@@ -287,6 +237,10 @@ Running LLMs at scale is expensive. GPT-4o costs **$2.50/M input tokens** while 
 
 Potential savings: routing a Tier 1 task from GPT-4o → GPT-4o Mini saves **~94%** on input cost.
 
+**Cost model assumptions:** Estimates based on prompt tokens (word count × 1.3) and output tokens (30–60% of input). Prices reflect API-published per-token rates for input + output. No batch processing discounts. Ollama models cost $0 (self-hosted hardware excluded). Latency medians across 740 simulated requests. Does not model cold-starts, rate-limit backoff, or retries — those add 200–500ms in practice.
+
+**Security:** API keys read from environment only (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`). Never logged, never stored in DB. `.env` is gitignored. Use a secrets manager (Vault, AWS Secrets Manager) in production. Each provider key scoped to minimum required permissions. Rate limiting on `/v1/completions` recommended to prevent runaway costs ($0 cost ceiling with Ollama-only deployment).
+
 ---
 
 ## 🧠 ML Classifier Performance
@@ -317,7 +271,7 @@ Potential savings: routing a Tier 1 task from GPT-4o → GPT-4o Mini saves **~94
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Try without API keys)
 
 ```bash
 # 1. Clone and enter
@@ -327,30 +281,29 @@ cd LLM-Cost-AutoPilot
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Set API keys (optional — benchmark runs without)
-cp .env.example .env
-# Edit .env with your keys:
-#   OPENAI_API_KEY=sk-...
-#   ANTHROPIC_API_KEY=sk-ant-...
-
-# 4. Train the complexity classifier
+# 3. Train the classifier (uses local data, no API keys needed)
 python -m ml.train_classifier
 
-# 5. Classify a prompt
+# 4. Classify a prompt to see routing decisions
 python -c "
 from ml.complexity_classifier import ComplexityClassifier
 c = ComplexityClassifier(); c.load()
-print(c.predict_complexity('Write merge sort in Python', 'coding'))
+result = c.predict_complexity('Write merge sort in Python', 'coding')
+print(f\"Tier: {result['tier']} | Confidence: {result['confidence']:.2f}\")
+print(f\"Recommended: {result['recommendation']}\")
 "
 
-# 6. Launch the API server
-uvicorn app.main:app --reload
-
-# 7. Run the 740-prompt benchmark
+# 5. Run the 740-prompt simulation benchmark
 python run_benchmark.py
 
-# 8. Run tests
-python -m pytest tests/ -v
+# 6. View results
+cat data/report.txt
+
+# 7. Run tests
+python -m pytest tests/ -q
+
+# 8. (Optional) Launch API server — needs API keys for real LLM calls
+# uvicorn app.main:app --reload
 ```
 
 ---
@@ -444,6 +397,28 @@ python -m pytest tests/ -v
 | **Testing** | pytest (96 tests) |
 
 </div>
+
+---
+
+## 🔄 Observability & Continuous Learning
+
+The system has a closed-loop feedback cycle:
+
+```
+User Prompt → Classifier → Router → LLM Provider → Response → Logger
+                                                              ↓
+                                                     Verifier (LLM-as-Judge)
+                                                              ↓
+                                              Feedback CSV → Retrain Classifier
+```
+
+- **DuckDB** stores every request: model used, cost, latency, quality score, escalation flag
+- **Verifier pipeline** asynchronously scores response quality using an LLM judge
+- **Classifier feedback** appends low-agreement results to `routing_failures.csv` for retraining
+- **Langfuse tracing** (optional) provides per-request LLM observability
+- **Alert rule:** if average quality drops >5% over 100 requests, trigger classifier retraining or escalate all to GPT-4o
+
+Grafana-compatible queries included in `storage/duckdb_logger.py`.
 
 ---
 

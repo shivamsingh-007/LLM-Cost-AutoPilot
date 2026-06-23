@@ -3,12 +3,12 @@ from __future__ import annotations
 import time
 from typing import Any, Dict, Optional, Tuple
 
-from models_config import (
+from core.models_config import (
     GPT4O, GPT4O_MINI, CLAUDE_HAIKU_4_5, CLAUDE_SONNET_4_6,
     CLAUDE_OPUS_4_6, LLAMA_3_1_8B, LLAMA_3_3_70B,
     ModelConfig, get_model,
 )
-from unified_interface import UnifiedLLMInterface
+from core.unified_interface import UnifiedLLMInterface
 
 
 class LLMRouter:

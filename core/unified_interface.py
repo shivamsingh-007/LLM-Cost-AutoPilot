@@ -5,7 +5,7 @@ import os
 from dataclasses import dataclass, asdict, field
 from typing import Dict, Optional
 
-from models_config import ModelConfig, Provider
+from core.models_config import ModelConfig, Provider
 
 
 @dataclass

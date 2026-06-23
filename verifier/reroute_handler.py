@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional
 
-from models_config import ALL_MODELS, ModelConfig
-from unified_interface import UnifiedLLMInterface
+from core.models_config import ALL_MODELS, ModelConfig
+from core.unified_interface import UnifiedLLMInterface
 
 
 def _pick_highest_tier_model() -> ModelConfig:

@@ -143,7 +143,7 @@ class TestRerouteHandler:
     @pytest.mark.asyncio
     async def test_picks_highest_quality_tier_model(self):
         from verifier.reroute_handler import _pick_highest_tier_model
-        from models_config import CLAUDE_SONNET_4_6 as ClaudeSonnet46
+        from core.models_config import CLAUDE_SONNET_4_6 as ClaudeSonnet46
         model = _pick_highest_tier_model()
         assert model.quality_tier == 10
 

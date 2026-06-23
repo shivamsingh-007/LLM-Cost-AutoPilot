@@ -3,8 +3,8 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, patch, MagicMock, ANY
 import pytest
 
-from models_config import ModelConfig, Provider, GPT4O, GPT4O_MINI, CLAUDE_HAIKU_4_5
-from unified_interface import Response, UnifiedLLMInterface
+from core.models_config import ModelConfig, Provider, GPT4O, GPT4O_MINI, CLAUDE_HAIKU_4_5
+from core.unified_interface import Response, UnifiedLLMInterface
 
 
 class TestResponseDataclass:
@@ -42,49 +42,36 @@ class TestResponseDataclass:
 
 
 class TestUnifiedLLMInterfaceInit:
+    def test_init_does_not_import_sdks(self):
+        llm = UnifiedLLMInterface()
+        assert llm._openai_client is None
+        assert llm._anthropic_client is None
+        assert llm._ollama_client is None
+
     @patch("builtins.__import__", side_effect=ImportError("no openai"))
-    def test_openai_unavailable(self, mock_import):
-        with pytest.warns(UserWarning, match="openai SDK not installed"):
-            llm = UnifiedLLMInterface()
-        assert llm.openai_client is None
+    def test_get_openai_returns_none_on_import_error(self, mock_import):
+        llm = UnifiedLLMInterface()
+        assert llm._get_openai() is None
 
     @patch("builtins.__import__", side_effect=ImportError("no anthropic"))
-    def test_anthropic_unavailable(self, mock_import):
-        with pytest.warns(UserWarning, match="anthropic SDK not installed"):
-            llm = UnifiedLLMInterface()
-        assert llm.anthropic_client is None
+    def test_get_anthropic_returns_none_on_import_error(self, mock_import):
+        llm = UnifiedLLMInterface()
+        assert llm._get_anthropic() is None
 
     @patch("builtins.__import__", side_effect=ImportError("no ollama"))
-    def test_ollama_unavailable(self, mock_import):
-        with pytest.warns(UserWarning, match="ollama SDK not installed"):
-            llm = UnifiedLLMInterface()
-        assert llm.ollama_client is None
+    def test_get_ollama_returns_none_on_import_error(self, mock_import):
+        llm = UnifiedLLMInterface()
+        assert llm._get_ollama() is None
 
     @patch("builtins.__import__")
-    def test_all_clients_created(self, mock_import):
-        mock_openai = MagicMock()
-        mock_anthropic = MagicMock()
-        mock_ollama = MagicMock()
-
-        def side_effect(name, *args, **kwargs):
-            if name == "openai":
-                mock_openai.AsyncOpenAI = MagicMock(return_value="openai_client")
-                return mock_openai
-            elif name == "anthropic":
-                mock_anthropic.AsyncAnthropic = MagicMock(return_value="anthropic_client")
-                return mock_anthropic
-            elif name == "ollama":
-                mock_ollama.AsyncClient = MagicMock(return_value="ollama_client")
-                return mock_ollama
-            raise ImportError(f"no {name}")
-
-        mock_import.side_effect = side_effect
-
-        with patch.dict("os.environ", {"OPENAI_API_KEY": "sk-test", "ANTHROPIC_API_KEY": "sk-ant-test"}):
+    def test_get_openai_creates_client(self, mock_import):
+        mock_mod = MagicMock()
+        mock_mod.AsyncOpenAI = MagicMock(return_value="openai_client")
+        mock_import.return_value = mock_mod
+        with patch.dict("os.environ", {"OPENAI_API_KEY": "sk-test"}):
             llm = UnifiedLLMInterface()
-            assert llm.openai_client == "openai_client"
-            assert llm.anthropic_client == "anthropic_client"
-            assert llm.ollama_client == "ollama_client"
+            assert llm._get_openai() == "openai_client"
+            mock_mod.AsyncOpenAI.assert_called_once_with(api_key="sk-test")
 
 
 @pytest.mark.asyncio

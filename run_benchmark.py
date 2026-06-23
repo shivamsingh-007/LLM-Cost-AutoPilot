@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 from storage.duckdb_logger import DuckDBLogger, hash_prompt
-from models_config import get_cheapest_model_for_complexity, GPT4O, ALL_MODELS
+from core.models_config import get_cheapest_model_for_complexity, GPT4O, ALL_MODELS
 from ml.complexity_classifier import ComplexityClassifier
 
 TIER_MAP = {1: "Tier 1", 2: "Tier 2", 3: "Tier 3"}

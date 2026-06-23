@@ -1,6 +1,6 @@
 import pytest
 
-from models_config import (
+from core.models_config import (
     Provider,
     ModelConfig,
     MODEL_REGISTRY,

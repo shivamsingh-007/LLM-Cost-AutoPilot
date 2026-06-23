@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import time
 import os
-import warnings
 from dataclasses import dataclass, asdict, field
 from typing import Dict, Optional
 
@@ -26,33 +25,39 @@ class Response:
 
 class UnifiedLLMInterface:
     def __init__(self) -> None:
-        self.openai_client = None
-        self.anthropic_client = None
-        self.ollama_client = None
+        self._openai_key = os.getenv("OPENAI_API_KEY", "")
+        self._anthropic_key = os.getenv("ANTHROPIC_API_KEY", "")
+        self._ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+        self._openai_client = None
+        self._anthropic_client = None
+        self._ollama_client = None
 
-        try:
-            from openai import AsyncOpenAI as _AsyncOpenAI
-            self.openai_client = _AsyncOpenAI(
-                api_key=os.getenv("OPENAI_API_KEY", "")
-            )
-        except ImportError:
-            warnings.warn("openai SDK not installed. OpenAI models unavailable.")
+    def _get_openai(self):
+        if self._openai_client is None:
+            try:
+                from openai import AsyncOpenAI as _AsyncOpenAI
+                self._openai_client = _AsyncOpenAI(api_key=self._openai_key)
+            except ImportError:
+                return None
+        return self._openai_client
 
-        try:
-            from anthropic import AsyncAnthropic as _AsyncAnthropic
-            self.anthropic_client = _AsyncAnthropic(
-                api_key=os.getenv("ANTHROPIC_API_KEY", "")
-            )
-        except ImportError:
-            warnings.warn("anthropic SDK not installed. Anthropic models unavailable.")
+    def _get_anthropic(self):
+        if self._anthropic_client is None:
+            try:
+                from anthropic import AsyncAnthropic as _AsyncAnthropic
+                self._anthropic_client = _AsyncAnthropic(api_key=self._anthropic_key)
+            except ImportError:
+                return None
+        return self._anthropic_client
 
-        try:
-            import ollama as _ollama
-            self.ollama_client = _ollama.AsyncClient(
-                host=os.getenv("OLLAMA_HOST", "http://localhost:11434")
-            )
-        except ImportError:
-            warnings.warn("ollama SDK not installed. Ollama models unavailable.")
+    def _get_ollama(self):
+        if self._ollama_client is None:
+            try:
+                import ollama as _ollama
+                self._ollama_client = _ollama.AsyncClient(host=self._ollama_host)
+            except ImportError:
+                return None
+        return self._ollama_client
 
     async def send_request(
         self,
@@ -102,7 +107,8 @@ class UnifiedLLMInterface:
         temperature: float,
         max_tokens: int,
     ) -> tuple[str, Dict[str, int]]:
-        if self.openai_client is None:
+        client = self._get_openai()
+        if client is None:
             raise RuntimeError("OpenAI client not available. Install openai SDK.")
 
         messages = []
@@ -110,7 +116,7 @@ class UnifiedLLMInterface:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
 
-        response = await self.openai_client.chat.completions.create(
+        response = await client.chat.completions.create(
             model=model_config.model_id,
             messages=messages,
             temperature=temperature,
@@ -134,7 +140,8 @@ class UnifiedLLMInterface:
         temperature: float,
         max_tokens: int,
     ) -> tuple[str, Dict[str, int]]:
-        if self.anthropic_client is None:
+        client = self._get_anthropic()
+        if client is None:
             raise RuntimeError("Anthropic client not available. Install anthropic SDK.")
 
         kwargs: Dict = {
@@ -146,7 +153,7 @@ class UnifiedLLMInterface:
         if system_prompt:
             kwargs["system"] = system_prompt
 
-        response = await self.anthropic_client.messages.create(**kwargs)
+        response = await client.messages.create(**kwargs)
 
         tokens: Dict[str, int] = {}
         if hasattr(response, "usage") and response.usage:
@@ -169,7 +176,8 @@ class UnifiedLLMInterface:
         temperature: float,
         max_tokens: int,
     ) -> tuple[str, Dict[str, int]]:
-        if self.ollama_client is None:
+        client = self._get_ollama()
+        if client is None:
             raise RuntimeError("Ollama client not available. Install ollama SDK.")
 
         messages = []
@@ -177,7 +185,7 @@ class UnifiedLLMInterface:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
 
-        response = await self.ollama_client.chat(
+        response = await client.chat(
             model=model_config.model_id,
             messages=messages,
             options={

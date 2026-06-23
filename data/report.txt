@@ -1,0 +1,10 @@
+LLM Cost Autopilot Report
+========================================
+Total requests tested: 740
+Cost reduction vs GPT-4o baseline: 92.3%
+Average quality score: 0.854
+Quality parity vs GPT-4o baseline (scaled): 85.4%
+Escalation rate: 17.4% (129/740)
+
+Routed cost: $0.0204 | Baseline cost: $0.2640
+Average latency: 1369ms

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import asyncio
-import json
-from typing import Any, Callable, Dict, Optional, Tuple
+import hashlib
+import time
+from typing import Any, Dict, Optional, Tuple
 
+from storage.duckdb_logger import DuckDBLogger, hash_prompt
 from verifier.classifier_feedback import record_routing_failure
 from verifier.judge_prompts import agreement_judge_prompt
 from verifier.langfuse_logger import LangfuseLogger
@@ -13,9 +15,10 @@ from verifier.reroute_handler import _pick_highest_tier_model
 class VerifierPipeline:
     AGREEMENT_THRESHOLD = 0.8
 
-    def __init__(self):
+    def __init__(self, db_logger: Optional[DuckDBLogger] = None):
         self._queue: asyncio.Queue = asyncio.Queue()
         self._logger = LangfuseLogger()
+        self._db_logger = db_logger or DuckDBLogger(":memory:")
 
     async def enqueue(self, prompt: str, response_text: str, metadata: Dict[str, Any]):
         job = {
@@ -50,7 +53,8 @@ class VerifierPipeline:
             routing_metadata=metadata,
         )
 
-        if agreement < self.AGREEMENT_THRESHOLD:
+        escalation = agreement < self.AGREEMENT_THRESHOLD
+        if escalation:
             failure = {
                 "prompt": prompt,
                 "agreement": agreement,
@@ -58,6 +62,23 @@ class VerifierPipeline:
                 "oracle_model": oracle_model,
             }
             await self._record_failure(failure)
+
+        # Log to DuckDB
+        request_id = f"{hash_prompt(prompt)[:12]}-{int(time.time() * 1000)}"
+        self._db_logger.log_request(
+            request_id=request_id,
+            prompt=prompt,
+            complexity_tier=str(metadata.get("tier", "?")),
+            routed_model=metadata.get("model", "unknown"),
+            baseline_model="gpt-4o",
+            input_tokens=metadata.get("input_tokens", 0),
+            output_tokens=metadata.get("output_tokens", 0),
+            cost_usd=metadata.get("cost_usd", 0.0),
+            latency_ms=metadata.get("latency_ms", 0.0),
+            quality_score=agreement,
+            escalation_flag=escalation,
+            success=True,
+        )
 
     async def _run_oracle(self, prompt: str) -> Tuple[str, str]:
         return ("", "")

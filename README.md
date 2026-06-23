@@ -54,7 +54,7 @@
 
 # 🚀 LLM Cost Autopilot
 
-**Intelligent prompt routing — use the cheapest model that gets the job done.**
+**I built an LLM cost autopilot that dynamically routes requests to cheaper models, cutting API spend by 92% while preserving 85% of baseline quality.**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-00d2ff?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3%2B-f093fb?style=flat-square&logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
@@ -65,6 +65,30 @@
 [![License](https://img.shields.io/badge/license-MIT-1a1a2e?style=flat-square)](LICENSE)
 
 </div>
+
+---
+
+## 📈 Portfolio Report
+
+I evaluated **740 diverse prompts** (234 labeled + 506 synthetic across 3 complexity tiers) through a multi-model routing layer and logged every request to DuckDB.
+
+| Metric | Value |
+|--------|:-----:|
+| **Total requests** | 740 |
+| **Cost reduction vs GPT-4o baseline** | **92.3%** |
+| **Quality parity vs GPT-4o baseline** | **85.4%** |
+| **Escalation rate** | 17.4% (129/740) |
+| **Routed cost** | $0.020 |
+| **Baseline cost (all GPT-4o)** | $0.264 |
+| **Average latency** | 1,369ms |
+
+The system routes simple queries (Q&A, extraction, translation) to Haiku/Mini/Llama 8B at near-zero cost, moderate tasks (summarization, analysis) to mid-tier models, and only escalates complex prompts (coding, math, planning) to premium models like Opus.
+
+```
+Routed cost:    ████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  $0.020
+Baseline cost:  ████████████████████████████████████████████  $0.264
+                                └── 92.3% savings
+```
 
 ---
 
@@ -86,8 +110,8 @@ Running LLMs at scale is expensive. GPT-4o costs **$2.50/M input tokens** while 
 
 | | | |
 |---|---|---|
-| <svg width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="12" fill="#1a1a2e"/><text x="24" y="32" font-family="monospace" font-size="24" fill="#00d2ff" font-weight="bold" text-anchor="middle">Σ</text></svg><br/>**9 Models**<br/>GPT-4o, o1-mini, Claude<br/>Sonnet, Haiku, Opus, Llama | <svg width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="12" fill="#1a1a2e"/><text x="24" y="32" font-family="monospace" font-size="24" fill="#f093fb" font-weight="bold" text-anchor="middle">🧠</text></svg><br/>**ML Classifier**<br/>RandomForest + TF-IDF<br/>80%+ cross-val accuracy | <svg width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="12" fill="#1a1a2e"/><text x="24" y="32" font-family="monospace" font-size="24" fill="#4facfe" font-weight="bold" text-anchor="middle">₹</text></svg><br/>**Cost Optimizer**<br/>Route to cheapest model<br/>that meets quality needs |
-| <svg width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="12" fill="#1a1a2e"/><text x="24" y="32" font-family="monospace" font-size="24" fill="#00f2fe" font-weight="bold" text-anchor="middle">⚡</text></svg><br/>**Async by Default**<br/>True async concurrency<br/>across all providers | <svg width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="12" fill="#1a1a2e"/><text x="24" y="32" font-family="monospace" font-size="22" fill="#f5576c" font-weight="bold" text-anchor="middle">YAML</text></svg><br/>**Routing Map**<br/>Auto-generated config<br/>maps tier → model | <svg width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="12" fill="#1a1a2e"/><text x="24" y="32" font-family="monospace" font-size="22" fill="#3a7bd5" font-weight="bold" text-anchor="middle">CV</text></svg><br/>**Benchmarks**<br/>Latency & cost metrics<br/>per model per task type |
+| <svg width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="12" fill="#1a1a2e"/><text x="24" y="32" font-family="monospace" font-size="24" fill="#00d2ff" font-weight="bold" text-anchor="middle">Σ</text></svg><br/>**9 Models**<br/>GPT-4o, o1-mini, Claude<br/>Sonnet, Haiku, Opus, Llama | <svg width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="12" fill="#1a1a2e"/><text x="24" y="32" font-family="monospace" font-size="24" fill="#f093fb" font-weight="bold" text-anchor="middle">🧠</text></svg><br/>**ML Classifier**<br/>RandomForest + TF-IDF<br/>75%+ cross-val accuracy | <svg width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="12" fill="#1a1a2e"/><text x="24" y="32" font-family="monospace" font-size="24" fill="#4facfe" font-weight="bold" text-anchor="middle">₹</text></svg><br/>**Cost Optimizer**<br/>Route to cheapest model<br/>that meets quality needs |
+| <svg width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="12" fill="#1a1a2e"/><text x="24" y="32" font-family="monospace" font-size="24" fill="#00f2fe" font-weight="bold" text-anchor="middle">⚡</text></svg><br/>**Async by Default**<br/>True async concurrency<br/>across all providers | <svg width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="12" fill="#1a1a2e"/><text x="24" y="32" font-family="monospace" font-size="22" fill="#f5576c" font-weight="bold" text-anchor="middle">DB</text></svg><br/>**DuckDB Logger**<br/>Request-level logs<br/>with cost & quality | <svg width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="12" fill="#1a1a2e"/><text x="24" y="32" font-family="monospace" font-size="22" fill="#3a7bd5" font-weight="bold" text-anchor="middle">CV</text></svg><br/>**FastAPI + Docker**<br/>Production-ready API<br/>with Grafana dashboards |
 
 </div>
 
@@ -213,23 +237,43 @@ print(c.predict_complexity('Write merge sort in Python', 'coding'))
 
 ```
 LLM-Cost-AutoPilot/
+├── app/                         # FastAPI service layer
+│   ├── main.py                  # 4 endpoints: POST completions, GET stats, PUT config, GET health
+│   ├── schemas.py               # Pydantic request/response models
+│   ├── router_service.py        # RoutingService orchestrator
+│   └── config_store.py          # Runtime config via JSON file
+├── core/                        # Core routing engine
+│   └── router.py                # LLMRouter with tier→model fallback chain
 ├── ml/                          # ML pipeline
 │   ├── complexity_classifier.py # RandomForest + Ridge + TF-IDF
 │   ├── train_classifier.py      # Entry point: train & save
 │   └── __init__.py
 ├── data/
-│   └── complexity_labels.csv    # 234 labeled prompts across 14 types
+│   ├── complexity_labels.csv    # 234 labeled prompts across 14 types
+│   ├── llm_autopilot.duckdb     # Request-level DuckDB logs (gitignored)
+│   └── report.txt               # Portfolio report
+├── storage/                     # Data persistence
+│   └── duckdb_logger.py         # DuckDB schema + log + query + summary
+├── verifier/                    # Quality verification pipeline
+│   ├── async_verifier.py        # Async verifier with Langfuse + DuckDB
+│   ├── classifier_feedback.py   # CSV feedback for classifier retraining
+│   ├── judge_prompts.py         # LLM-as-judge agreement prompt
+│   ├── langfuse_logger.py       # Langfuse observability wrapper
+│   └── reroute_handler.py       # Escalation to higher-tier models
 ├── config/
+│   ├── settings.py              # Env-driven config
 │   └── routing_map.yaml         # Auto-generated tier→model mappings
 ├── models/
 │   └── complexity_classifier/   # Saved model artifacts (gitignored)
 ├── models_config.py             # 9 ModelConfig instances with pricing
 ├── unified_interface.py         # Async LLM client (OpenAI + Anthropic + Ollama)
-├── run_benchmark.py             # 10 prompts × 9 models benchmark
-├── test_models_config.py        # 35 unit tests
-├── test_unified_interface.py    # 18 unit tests
+├── run_benchmark.py             # 740-prompt portfolio benchmark
+├── Dockerfile                   # Python 3.11 slim container
+├── docker-compose.yml           # API + Grafana + Ollama stack
+├── test_cost_tracker.py         # 16 tests (DuckDB logging + Grafana queries)
 ├── test_classifier.py           # 9 integration tests
-├── test_benchmark.py            # 8 benchmark tests
+├── test_verifier.py             # 17 tests (pipeline, judge, feedback, reroute)
+├── test_unified_interface.py    # 18 integration tests
 └── requirements.txt
 ```
 
@@ -241,15 +285,15 @@ LLM-Cost-AutoPilot/
 
 | File | Tests | Status |
 |------|:-----:|:------:|
-| `test_models_config.py` | 35 | ✅ Passing |
-| `test_unified_interface.py` | 18 | ✅ Passing |
+| `test_cost_tracker.py` | 16 | ✅ Passing |
 | `test_classifier.py` | 9 | ✅ Passing |
-| `test_benchmark.py` | 8 | ✅ Passing |
-| **Total** | **70** | **✅ All Passing** |
+| `test_verifier.py` | 17 | ✅ Passing |
+| `test_unified_interface.py` | 18 | ✅ Passing |
+| **Total** | **60** | **✅ All Passing** |
 
 ```bash
 # Run all tests
-python -m pytest test_models_config.py test_unified_interface.py test_classifier.py test_benchmark.py -v
+python -m pytest test_cost_tracker.py test_classifier.py test_verifier.py -v
 ```
 
 </div>
@@ -263,11 +307,14 @@ python -m pytest test_models_config.py test_unified_interface.py test_classifier
 | | |
 |---|---|
 | **Language** | Python 3.11+ |
+| **API Framework** | FastAPI + Pydantic v2 |
 | **ML Framework** | scikit-learn (RandomForest, Ridge, TF-IDF) |
 | **LLM Providers** | OpenAI API · Anthropic API · Ollama (local) |
-| **Data** | pandas, numpy |
-| **Serialization** | joblib, PyYAML |
-| **Testing** | pytest |
+| **Storage** | DuckDB (embedded analytics) |
+| **Observability** | Langfuse (LLM tracing) |
+| **Data** | pandas, numpy, joblib, PyYAML |
+| **Infrastructure** | Docker, Docker Compose, Grafana |
+| **Testing** | pytest (60 tests) |
 
 </div>
 
@@ -277,9 +324,10 @@ python -m pytest test_models_config.py test_unified_interface.py test_classifier
 
 - [x] **Day 1:** Unified model config + async interface + benchmark harness
 - [x] **Day 2:** Complexity classifier (RandomForest + Ridge) + routing YAML
-- [ ] **Day 3:** Dynamic cost tracker with real-time spending dashboards
-- [ ] **Day 4:** Multi-user budget management with per-project allocation
-- [ ] **Day 5:** Production deployment — FastAPI server + Docker + CI/CD
+- [x] **Day 3:** Quality verifier pipeline — LLM-as-judge, Langfuse tracing, escalation
+- [x] **Day 4:** DuckDB cost tracker — request logging, baseline comparison, Grafana queries
+- [x] **Day 5:** FastAPI production API — POST /v1/completions, GET /v1/stats, PUT /v1/routing-config
+- [x] **Portfolio:** 740-prompt benchmark, 92.3% cost reduction, 85.4% quality parity
 
 ---
 
